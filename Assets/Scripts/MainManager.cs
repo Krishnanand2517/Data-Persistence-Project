@@ -10,13 +10,21 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
+    public NameInput nameInputScript;
+
     public Text ScoreText;
+    public Text HighScoreText;
     public GameObject GameOverText;
+    public GameObject NameInputContainer;
     
     private bool m_Started = false;
     private int m_Points;
+
+    private int highScore;
+    private string playerName;
     
     private bool m_GameOver = false;
+    private bool m_HighScorePassed = false;
 
 
     // Start is called before the first frame update
@@ -24,6 +32,12 @@ public class MainManager : MonoBehaviour
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
+
+        GameManager.Instance.LoadScore();
+        highScore = GameManager.Instance.HighScore;
+        playerName = GameManager.Instance.BestPlayer;
+
+        HighScoreText.text = "Best Score : " + playerName + " : " + highScore;
         
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
@@ -53,7 +67,7 @@ public class MainManager : MonoBehaviour
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
         }
-        else if (m_GameOver)
+        else if (m_GameOver && !m_HighScorePassed)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -71,6 +85,25 @@ public class MainManager : MonoBehaviour
     public void GameOver()
     {
         m_GameOver = true;
+        
+        if (m_Points > highScore)
+        {
+            m_HighScorePassed = true;
+            NameInputContainer.SetActive(true);
+        }
+        else
+        {
+            GameOverText.SetActive(true);
+        }
+    }
+
+    public void SubmitData()
+    {
+        playerName = nameInputScript.GetName();
+        GameManager.Instance.SaveScore(m_Points, playerName);
+
+        NameInputContainer.SetActive(false);
         GameOverText.SetActive(true);
+        m_HighScorePassed = false;
     }
 }
